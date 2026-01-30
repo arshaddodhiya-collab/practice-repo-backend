@@ -14,7 +14,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @jakarta.validation.constraints.NotBlank(message = "Name is mandatory")
     private String name;
+
+    @jakarta.validation.constraints.NotBlank(message = "Email is mandatory")
+    @jakarta.validation.constraints.Email(message = "Email should be valid")
     private String email;
 
     public User() {
