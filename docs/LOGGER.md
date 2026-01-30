@@ -10,7 +10,7 @@ Let’s go step by step, from intuition → code → real production usage.
 
 Logs answer questions like:
 
-* What request came in?
+* What request came in? 
 * What decision did the system make?
 * Why did something fail?
 * What data was involved (safely)?
