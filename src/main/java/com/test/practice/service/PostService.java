@@ -6,21 +6,37 @@ import com.test.practice.entity.User;
 import com.test.practice.exception.ResourceNotFoundException;
 import com.test.practice.repository.PostRepository;
 import com.test.practice.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Objects;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class PostService {
 
-    @Autowired
-    private PostRepository postRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PostService.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
+    // Constructor injection (preferred over field injection)
+    public PostService(PostRepository postRepository, UserRepository userRepository) {
+        this.postRepository = Objects.requireNonNull(postRepository, "postRepository must not be null");
+        this.userRepository = Objects.requireNonNull(userRepository, "userRepository must not be null");
+    }
+
+    /**
+     * Create a Post for an existing user.
+     */
+    @Transactional
     public PostDTO createPost(Long userId, PostDTO postDTO) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(postDTO, "postDTO must not be null");
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
@@ -30,19 +46,30 @@ public class PostService {
         post.setUser(user);
 
         Post savedPost = postRepository.save(post);
+        logger.debug("Created post with id={} for userId={}", savedPost.getId(), userId);
         return mapToDTO(savedPost);
     }
 
-    public List<PostDTO> getPostsByUserId(Long userId) {
+    /**
+     * Retrieve posts for a user with pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDTO> getPostsByUserId(Long userId, Pageable pageable) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(pageable, "pageable must not be null");
+
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
-        return postRepository.findByUserId(userId).stream()
-                .map(this::mapToDTO)
-                .collect(java.util.stream.Collectors.toList());
+
+        return postRepository.findByUserId(userId, pageable)
+                .map(PostService::mapToDTO);
     }
 
-    private PostDTO mapToDTO(Post post) {
+    private static PostDTO mapToDTO(Post post) {
+        if (post == null) {
+            return null;
+        }
         return new PostDTO(post.getId(), post.getTitle(), post.getContent());
     }
 }

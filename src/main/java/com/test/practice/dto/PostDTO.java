@@ -1,8 +1,14 @@
 package com.test.practice.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class PostDTO {
     private Long id;
+
+    @NotBlank(message = "Title must not be blank")
     private String title;
+
+    @NotBlank(message = "Content must not be blank")
     private String content;
 
     public PostDTO() {

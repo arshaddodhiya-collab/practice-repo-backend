@@ -1,11 +1,20 @@
 package com.test.practice.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.List;
 
 public class UserDTO {
     private Long id;
+
+    @NotBlank(message = "Name must not be blank")
     private String name;
+
+    @NotBlank(message = "Email must not be blank")
+    @Email(message = "Email should be valid")
     private String email;
+
     private List<PostDTO> posts;
 
     public UserDTO() {
