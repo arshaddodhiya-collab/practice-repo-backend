@@ -1,5 +1,6 @@
 package com.test.practice.service;
 
+import com.test.practice.dto.PostDTO;
 import com.test.practice.entity.Post;
 import com.test.practice.entity.User;
 import com.test.practice.exception.ResourceNotFoundException;
@@ -19,17 +20,29 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
-    public Post createPost(Long userId, Post post) {
+    public PostDTO createPost(Long userId, PostDTO postDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        Post post = new Post();
+        post.setTitle(postDTO.getTitle());
+        post.setContent(postDTO.getContent());
         post.setUser(user);
-        return postRepository.save(post);
+
+        Post savedPost = postRepository.save(post);
+        return mapToDTO(savedPost);
     }
 
-    public List<Post> getPostsByUserId(Long userId) {
+    public List<PostDTO> getPostsByUserId(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
-        return postRepository.findByUserId(userId);
+        return postRepository.findByUserId(userId).stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private PostDTO mapToDTO(Post post) {
+        return new PostDTO(post.getId(), post.getTitle(), post.getContent());
     }
 }

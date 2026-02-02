@@ -1,6 +1,7 @@
 package com.test.practice.controller;
 
-import com.test.practice.entity.User;
+import com.test.practice.dto.UserDTO;
+// import com.test.practice.entity.User;
 import com.test.practice.service.UserService;
 
 import jakarta.validation.Valid;
@@ -23,19 +24,20 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<UserDTO> createUser(
+            @Valid @RequestBody UserDTO userDTO) {
+        UserDTO createdUser = userService.createUser(userDTO);
         return ResponseEntity.ok(createdUser);
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 

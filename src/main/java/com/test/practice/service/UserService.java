@@ -1,11 +1,15 @@
 package com.test.practice.service;
 
+import com.test.practice.dto.PostDTO;
+import com.test.practice.dto.UserDTO;
+import com.test.practice.entity.Post;
 import com.test.practice.entity.User;
 import com.test.practice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -17,18 +21,29 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
+    private PostDTO mapToPostDTO(Post post) {
+        return new PostDTO(post.getId(), post.getTitle(), post.getContent());
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public UserDTO createUser(UserDTO userDTO) {
+        User user = new User();
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        User savedUser = userRepository.save(user);
+        return mapToDTO(savedUser);
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public UserDTO getUserById(Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.test.practice.exception.ResourceNotFoundException(
                         "User not found with id: " + id));
+        return mapToDTO(user);
     }
 
     public void deleteUser(Long id) {
@@ -38,4 +53,10 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    private UserDTO mapToDTO(User user) {
+        List<PostDTO> postDTOs = user.getPosts() != null
+                ? user.getPosts().stream().map(this::mapToPostDTO).collect(Collectors.toList())
+                : null;
+        return new UserDTO(user.getId(), user.getName(), user.getEmail(), postDTOs);
+    }
 }

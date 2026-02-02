@@ -1,6 +1,7 @@
 package com.test.practice.controller;
 
-import com.test.practice.entity.Post;
+import com.test.practice.dto.PostDTO;
+// import com.test.practice.entity.Post;
 import com.test.practice.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,14 +19,15 @@ public class PostController {
     private PostService postService;
 
     @PostMapping("/user/{userId}")
-    public ResponseEntity<Post> createPost(@PathVariable Long userId, @Valid @RequestBody Post post) {
-        Post createdPost = postService.createPost(userId, post);
+    public ResponseEntity<PostDTO> createPost(@PathVariable Long userId,
+            @Valid @RequestBody PostDTO postDTO) {
+        PostDTO createdPost = postService.createPost(userId, postDTO);
         return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Post>> getPostsByUserId(@PathVariable Long userId) {
-        List<Post> posts = postService.getPostsByUserId(userId);
+    public ResponseEntity<List<PostDTO>> getPostsByUserId(@PathVariable Long userId) {
+        List<PostDTO> posts = postService.getPostsByUserId(userId);
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
 }
