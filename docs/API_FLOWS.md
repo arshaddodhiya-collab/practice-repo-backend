@@ -160,3 +160,165 @@ sequenceDiagram
         PostController-->>Client: 404 Not Found (ErrorResponse)
     end
 ```
+
+---
+
+## 3. Comment Management
+
+### 3.1 Add Comment
+**Endpoint:** `POST /comments`
+
+**Flow:**
+1.  Client sends `POST /comments` with `CommentDTO` (text, userId, postId).
+2.  `CommentController` calls service.
+3.  `CommentService` verifies User and Post exist.
+4.  `CommentService` creates and saves `Comment` entity.
+5.  Returns created `CommentDTO`.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant CommentController
+    participant CommentService
+    participant UserRepository
+    participant PostRepository
+    participant CommentRepository
+    participant Database
+
+    Client->>CommentController: POST /comments (CommentDTO)
+    CommentController->>CommentService: addComment(CommentDTO)
+    
+    CommentService->>UserRepository: findById(userId)
+    alt User Not Found
+        CommentService-->>CommentController: Throw ResourceNotFoundException
+        CommentController-->>Client: 404 Not Found
+    end
+
+    CommentService->>PostRepository: findById(postId)
+    alt Post Not Found
+        CommentService-->>CommentController: Throw ResourceNotFoundException
+        CommentController-->>Client: 404 Not Found
+    end
+
+    CommentService->>CommentService: Create Comment Entity
+    CommentService->>CommentRepository: save(Comment)
+    CommentRepository->>Database: INSERT INTO comments ...
+    Database-->>CommentRepository: Saved Entity
+    CommentRepository-->>CommentService: Saved Entity
+    CommentService-->>CommentController: CommentDTO
+    CommentController-->>Client: 201 Created (CommentDTO)
+```
+
+### 3.2 Get Comments by Post (HQL)
+**Endpoint:** `GET /comments/post/{postId}`
+
+- Uses **HQL** to fetch comments and associated users in a single query (`JOIN FETCH`).
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant CommentController
+    participant CommentService
+    participant CommentRepository
+    participant Database
+
+    Client->>CommentController: GET /comments/post/{postId}
+    CommentController->>CommentService: getCommentsByPostId(postId)
+    CommentService->>CommentRepository: findCommentsWithUserByPostId(postId)
+    CommentRepository->>Database: SELECT c, u FROM Comment c JOIN FETCH c.user ...
+    Database-->>CommentRepository: List<Comment> (with Users initialized)
+    CommentRepository-->>CommentService: List<Comment>
+    CommentService->>CommentService: Map to List<CommentDTO>
+    CommentService-->>CommentController: List<CommentDTO>
+    CommentController-->>Client: 200 OK
+```
+
+---
+
+## 4. Like Management
+
+### 4.1 Like a Post
+**Endpoint:** `POST /likes`
+
+**Flow:**
+1. Check if user already liked the post.
+2. Verify User and Post exist.
+3. Save `PostLike` entity.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant PostLikeController
+    participant PostLikeService
+    participant PostLikeRepository
+    participant Database
+
+    Client->>PostLikeController: POST /likes (PostLikeDTO)
+    PostLikeController->>PostLikeService: likePost(PostLikeDTO)
+    
+    PostLikeService->>PostLikeRepository: existsByUserIdAndPostId(...)
+    alt Already Liked
+        PostLikeService-->>PostLikeController: Throw Exception
+        PostLikeController-->>Client: 400 Bad Request
+    end
+
+    PostLikeService->>PostLikeService: Verify User & Post Exist
+    PostLikeService->>PostLikeRepository: save(PostLike)
+    PostLikeRepository->>Database: INSERT INTO post_likes ...
+    Database-->>PostLikeRepository: Saved
+    PostLikeRepository-->>PostLikeService: Saved
+    PostLikeService-->>PostLikeController: void
+    PostLikeController-->>Client: 201 Created
+```
+
+### 4.2 Count Likes (Native Query)
+**Endpoint:** `GET /likes/post/{postId}/count`
+
+- Uses **Native SQL** for performance.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant PostLikeController
+    participant PostLikeService
+    participant PostLikeRepository
+    participant Database
+
+    Client->>PostLikeController: GET /likes/post/{postId}/count
+    PostLikeController->>PostLikeService: countLikes(postId)
+    PostLikeService->>PostLikeRepository: countLikesByPostId(postId)
+    PostLikeRepository->>Database: SELECT COUNT(*) FROM post_likes ...
+    Database-->>PostLikeRepository: count (Long)
+    PostLikeRepository-->>PostLikeService: count
+    PostLikeService-->>PostLikeController: count
+    PostLikeController-->>Client: 200 OK (Count)
+```
+
+---
+
+## 5. Reports (Native Queries)
+
+### 5.1 Top Active Users
+**Endpoint:** `GET /reports/active-users`
+
+- Uses complex **Native SQL** with `JOIN` and `GROUP BY`.
+- Maps result to `UserActivityReportDTO` interface.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant ReportController
+    participant PostLikeService
+    participant PostLikeRepository
+    participant Database
+
+    Client->>ReportController: GET /reports/active-users
+    ReportController->>PostLikeService: getTopActiveUsers()
+    PostLikeService->>PostLikeRepository: findTopActiveUsers()
+    PostLikeRepository->>Database: SELECT u.id, u.name, (...) FROM users ...
+    Database-->>PostLikeRepository: ResultSet
+    PostLikeRepository->>PostLikeRepository: Map to UserActivityReportDTO (Projection)
+    PostLikeRepository-->>PostLikeService: List<UserActivityReportDTO>
+    PostLikeService-->>ReportController: List<UserActivityReportDTO>
+    ReportController-->>Client: 200 OK (JSON List)
+```
