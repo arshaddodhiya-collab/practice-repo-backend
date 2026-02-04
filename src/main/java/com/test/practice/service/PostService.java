@@ -22,11 +22,14 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final com.test.practice.repository.CategoryRepository categoryRepository;
 
     // Constructor injection (preferred over field injection)
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository,
+            com.test.practice.repository.CategoryRepository categoryRepository) {
         this.postRepository = Objects.requireNonNull(postRepository, "postRepository must not be null");
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository must not be null");
+        this.categoryRepository = Objects.requireNonNull(categoryRepository, "categoryRepository must not be null");
     }
 
     /**
@@ -44,6 +47,13 @@ public class PostService {
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setUser(user);
+
+        if (postDTO.getCategoryId() != null) {
+            com.test.practice.entity.Category category = categoryRepository.findById(postDTO.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Category not found with id: " + postDTO.getCategoryId()));
+            post.setCategory(category);
+        }
 
         Post savedPost = postRepository.save(post);
         logger.debug("Created post with id={} for userId={}", savedPost.getId(), userId);
@@ -70,6 +80,11 @@ public class PostService {
         if (post == null) {
             return null;
         }
-        return new PostDTO(post.getId(), post.getTitle(), post.getContent());
+        return new PostDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCategory() != null ? post.getCategory().getId() : null,
+                post.getCategory() != null ? post.getCategory().getName() : null);
     }
 }

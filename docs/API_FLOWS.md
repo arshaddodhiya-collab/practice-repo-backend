@@ -193,7 +193,7 @@ sequenceDiagram
         CommentService-->>CommentController: Throw ResourceNotFoundException
         CommentController-->>Client: 404 Not Found
     end
-
+    
     CommentService->>PostRepository: findById(postId)
     alt Post Not Found
         CommentService-->>CommentController: Throw ResourceNotFoundException
@@ -321,4 +321,73 @@ sequenceDiagram
     PostLikeRepository-->>PostLikeService: List<UserActivityReportDTO>
     PostLikeService-->>ReportController: List<UserActivityReportDTO>
     ReportController-->>Client: 200 OK (JSON List)
+```
+
+---
+
+## 6. Category Management
+
+### 6.1 Create Category
+**Endpoint:** `POST /categories`
+
+**Flow:**
+1. Client sends `POST /categories` with name and description.
+2. `CategoryController` calls `CategoryService`.
+3. `CategoryService` saves the entity.
+4. Returns created `CategoryDTO`.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant CategoryController
+    participant CategoryService
+    participant CategoryRepository
+    participant Database
+
+    Client->>CategoryController: POST /categories (CategoryDTO)
+    CategoryController->>CategoryService: createCategory(CategoryDTO)
+    CategoryService->>CategoryRepository: save(Category)
+    CategoryRepository->>Database: INSERT INTO categories ...
+    Database-->>CategoryRepository: Saved Category
+    CategoryRepository-->>CategoryService: Saved Category
+    CategoryService->>CategoryService: Map to DTO
+    CategoryService-->>CategoryController: CategoryDTO
+    CategoryController-->>Client: 201 Created (CategoryDTO)
+```
+
+### 6.2 Get All Categories
+**Endpoint:** `GET /categories`
+
+- Returns a list of all categories.
+
+### 6.3 Get Posts by Category
+**Endpoint:** `GET /categories/{id}/posts`
+
+- Returns all posts belonging to a specific category.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant CategoryController
+    participant CategoryService
+    participant CategoryRepository
+    participant PostRepository
+    participant Database
+
+    Client->>CategoryController: GET /categories/{id}/posts
+    CategoryController->>CategoryService: getPostsByCategory(id)
+    CategoryService->>CategoryRepository: existsById(id)
+    
+    alt Category Exists
+        CategoryService->>PostRepository: findByCategoryId(id)
+        PostRepository->>Database: SELECT * FROM posts WHERE category_id = ?
+        Database-->>PostRepository: List<Post>
+        PostRepository-->>CategoryService: List<Post>
+        CategoryService->>CategoryService: Map to PostDTOs
+        CategoryService-->>CategoryController: List<PostDTO>
+        CategoryController-->>Client: 200 OK (List<PostDTO>)
+    else Category Not Found
+        CategoryService-->>CategoryController: Throw ResourceNotFoundException
+        CategoryController-->>Client: 404 Not Found
+    end
 ```

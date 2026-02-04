@@ -74,6 +74,11 @@ public class UserService {
     }
 
     private static PostDTO mapToPostDTO(Post post) {
-        return new PostDTO(post.getId(), post.getTitle(), post.getContent());
+        return new PostDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCategory() != null ? post.getCategory().getId() : null,
+                post.getCategory() != null ? post.getCategory().getName() : null);
     }
 }
