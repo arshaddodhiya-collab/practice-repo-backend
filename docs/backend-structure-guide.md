@@ -122,29 +122,66 @@ public class GlobalExceptionHandler {
 }
 ```
 
-## 5. Configuration & Best Practices
+## 5. Database Management & Migrations
 
-### 5.1. Database Configuration
-- **Manual Migration**: We use **manual SQL scripts** for schema changes.
-- **Properties**:
-    - `spring.jpa.hibernate.ddl-auto=validate`: Prevents Hibernate from automatically altering the schema. This ensures production stability.
-    - `spring.jpa.open-in-view=false`: Disables OSIV to prevent database connection leaks and ensure all data loading happens within the Service transaction.
+The project uses a **manual migration strategy** to ensure full control over the database schema. Automations like `hibernate.ddl-auto` are set to `validate` to prevent accidental schema changes in production.
 
+### 5.1. The `/db` Directory
+Located at the project root, the `/db` directory contains all SQL scripts required to set up and update the database.
+
+```text
+/db
+├── manual_migration.sql   # The master script containing all DDL statements
+└── schema_versions/       # (Optional) Archived scripts for version history
+    ├── v1_init.sql
+    └── v2_add_columns.sql
+```
+
+### 5.2. Migration Workflow
+
+#### Step 1: Draft the Change
+Write your `CREATE`, `ALTER`, or `DROP` statements in `db/manual_migration.sql`. Always append new changes to the end of the file or creating a new versioned file if using a versioning system.
+
+#### Step 2: Apply to Local Database
+Run the SQL script against your local MySQL instance. You can use the command line or a GUI tool (Workbench, DBeaver).
+
+**Command Line:**
+```bash
+mysql -u [username] -p[password] [database_name] < db/manual_migration.sql
+```
+*Example:*
+```bash
+mysql -u root -p practice_db < db/manual_migration.sql
+```
+
+#### Step 3: Update Java Entities
+Modify the corresponding JPA Entity class in `src/main/java/.../entity` to match the new schema.
+- Add/remove fields.
+- Update `@Column` definitions.
+- Update relationships (`@OneToMany`, etc.).
+
+#### Step 4: Validate
+Start the Spring Boot application.
+- If `spring.jpa.hibernate.ddl-auto=validate` is set, the app will **fail to start** if your Entity does not match the Database table.
+- This guarantees that your code and database are always in sync.
+
+### 5.3. Managing Migrations in Teams
+- **Single File Approach**: For smaller teams, keeping `manual_migration.sql` as the source of truth works well. Developer appends changes.
+- **Versioned Files**: For larger teams, use numbered files (e.g., `V1__init.sql`, `V2__feature_post.sql`) and apply them strictly in order.
+- **Review**: SQL scripts must be code-reviewed just like Java code.
+
+## 6. Configuration & Best Practices
+
+### 6.1. Properties Configuration
 ```properties
 # application.properties
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.open-in-view=false
 ```
 
-### 5.2. Migration Workflow
-1. Write the SQL change (CREATE TABLE, ALTER TABLE) in `db/manual_migration.sql`.
-2. Apply the SQL manually to your local database.
-3. Update the `Entity` class to match the new schema.
-4. Run the application; Hibernate will validate the Entity against the DB schema.
-
-### 5.3. Dependency Injection
+### 6.2. Dependency Injection
 - Always use **Constructor Injection** instead of `@Autowired` on fields. This makes testing easier and ensures immutability.
 
-### 5.4. Validation
+### 6.3. Validation
 - Validate inputs at the controller level using Jakarta Bean Validation (`@Valid`, `@NotNull`, `@Size`).
 - Fail fast with meaningful error messages.
