@@ -112,4 +112,21 @@ public class AdvancedPatternsTest {
         assertTrue(fetched.isPresent());
         assertEquals("Graph User", fetched.get().getUser().getName());
     }
+
+    @Test
+    @Transactional
+    public void testFetchJoin() {
+        User user = new User("Join User", "join@example.com");
+        userRepository.save(user);
+
+        Post post = new Post("Join Post", "Content", user);
+        postRepository.save(post);
+
+        List<Post> posts = postRepository.findAllWithUserFetchJoin();
+
+        assertFalse(posts.isEmpty());
+        // Verify we can access the user without exception (and importantly, it should
+        // be eagerly loaded)
+        assertEquals("Join User", posts.get(0).getUser().getName());
+    }
 }
