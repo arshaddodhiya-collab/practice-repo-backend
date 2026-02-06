@@ -384,3 +384,65 @@ Payload = visible info
 Signature = tamper protection
 Expiration = safety switch
 ```
+
+---
+
+## 🎨 Visual JWT Concept Diagrams
+
+### 1️⃣ JWT Structure Anatomy
+
+```mermaid
+classDiagram
+    class JWT {
+        +Header
+        +Payload
+        +Signature
+    }
+    
+    class Header {
+        "alg": "HS256"
+        "typ": "JWT"
+    }
+    
+    class Payload {
+        "sub": "user123"
+        "exp": 1700000000
+        "role": "ADMIN"
+    }
+    
+    class Signature {
+        HMACSHA256(
+          base64(Header) + "." +
+          base64(Payload),
+          secret
+        )
+    }
+    
+    JWT *-- Header
+    JWT *-- Payload
+    JWT *-- Signature
+```
+
+### 2️⃣ Signing & Verification Process
+
+```mermaid
+flowchart LR
+    subgraph SIGNING ["✍️ Creation (Server)"]
+        direction TB
+        H[Header] & P[Payload] --> Combine[Base64Url Encode & Join]
+        Combine --> Sign{Sign with Secret}
+        Sign --> Sig[Signature]
+        Combine & Sig --> JWT[Final JWT String]
+    end
+
+    subgraph VERIFY ["🔍 Verification (Server)"]
+        direction TB
+        JWTString[Received JWT] --> Split[Split Parts]
+        Split --> V_Header[Header] & V_Payload[Payload] & V_Sig[Signature]
+        V_Header & V_Payload --> ReCalc{Re-Calculate Signature}
+        ReCalc --> Compare{Matches Received Sig?}
+        Compare -- Yes --> Valid[✅ Valid Token]
+        Compare -- No --> Invalid[❌ Tampered/Invalid]
+    end
+```
+
