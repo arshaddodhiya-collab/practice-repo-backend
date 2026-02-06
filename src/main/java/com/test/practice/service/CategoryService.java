@@ -3,7 +3,8 @@ package com.test.practice.service;
 import com.test.practice.dto.CategoryDTO;
 import com.test.practice.dto.PostDTO;
 import com.test.practice.entity.Category;
-import com.test.practice.entity.Post;
+// import com.test.practice.entity.Post;
+import com.test.practice.projection.PostView;
 import com.test.practice.exception.ResourceNotFoundException;
 import com.test.practice.repository.CategoryRepository;
 import com.test.practice.repository.PostRepository;
@@ -40,20 +41,22 @@ public class CategoryService {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found with id " + categoryId);
         }
-        List<PostDTO> posts = postRepository.findByCategoryId(categoryId);
-        return posts;
+        List<PostView> posts = postRepository.findByCategoryId(categoryId);
+        return posts.stream()
+                .map(this::mapToPostDTO)
+                .collect(Collectors.toList());
     }
 
-    private CategoryDTO mapToDTO(Category category) {
-        return new CategoryDTO(category.getId(), category.getName(), category.getDescription());
-    }
-
-    private PostDTO mapToPostDTO(Post post) {
+    private PostDTO mapToPostDTO(PostView post) {
         return new PostDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getCategory() != null ? post.getCategory().getId() : null,
                 post.getCategory() != null ? post.getCategory().getName() : null);
+    }
+
+    private CategoryDTO mapToDTO(Category category) {
+        return new CategoryDTO(category.getId(), category.getName(), category.getDescription());
     }
 }

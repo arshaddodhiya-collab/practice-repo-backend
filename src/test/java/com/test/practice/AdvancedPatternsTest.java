@@ -1,7 +1,7 @@
 package com.test.practice;
 
-import com.test.practice.dto.UserSummary;
 import com.test.practice.entity.*;
+import com.test.practice.projection.UserSummary;
 import com.test.practice.repository.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

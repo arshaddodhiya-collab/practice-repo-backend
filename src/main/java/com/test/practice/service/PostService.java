@@ -2,6 +2,7 @@ package com.test.practice.service;
 
 import com.test.practice.dto.PostDTO;
 import com.test.practice.entity.Post;
+import com.test.practice.projection.PostView;
 import com.test.practice.entity.User;
 import com.test.practice.exception.ResourceNotFoundException;
 import com.test.practice.repository.PostRepository;
@@ -72,7 +73,20 @@ public class PostService {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return postRepository.findByUserId(userId, pageable);
+        return postRepository.findByUserId(userId, pageable)
+                .map(this::mapToDTO);
+    }
+
+    private PostDTO mapToDTO(PostView post) {
+        if (post == null) {
+            return null;
+        }
+        return new PostDTO(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getCategory() != null ? post.getCategory().getId() : null,
+                post.getCategory() != null ? post.getCategory().getName() : null);
     }
 
     private static PostDTO mapToDTO(Post post) {

@@ -1,4 +1,4 @@
-package com.test.practice.dto;
+package com.test.practice.projection;
 
 public interface UserSummary {
     Long getId();

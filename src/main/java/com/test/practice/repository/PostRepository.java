@@ -1,7 +1,7 @@
 package com.test.practice.repository;
 
-import com.test.practice.dto.PostDTO;
 import com.test.practice.entity.Post;
+import com.test.practice.projection.PostView;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,13 +14,13 @@ import java.util.Optional;
 
 public interface PostRepository
         extends JpaRepository<Post, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Post> {
-    Page<PostDTO> findByUserId(Long userId, Pageable pageable);
+    Page<PostView> findByUserId(Long userId, Pageable pageable);
 
-    List<PostDTO> findByCategoryId(Long categoryId);
+    List<PostView> findByCategoryId(Long categoryId);
 
     @EntityGraph(attributePaths = { "user", "comments" })
-    Optional<PostDTO> findWithUserAndCommentsById(Long id);
+    Optional<Post> findWithUserAndCommentsById(Long id);
 
     @Query("SELECT p FROM Post p JOIN FETCH p.user")
-    List<PostDTO> findAllWithUserFetchJoin();
+    List<Post> findAllWithUserFetchJoin();
 }

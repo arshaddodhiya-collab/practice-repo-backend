@@ -2,6 +2,7 @@ package com.test.practice.service;
 
 import com.test.practice.dto.CommentDTO;
 import com.test.practice.entity.Comment;
+import com.test.practice.projection.CommentView;
 import com.test.practice.entity.Post;
 import com.test.practice.entity.User;
 import com.test.practice.exception.ResourceNotFoundException;
@@ -44,8 +45,18 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByPostId(Long postId) {
         // Using the HQL method we created
-        List<CommentDTO> comments = commentRepository.findCommentsWithUserByPostId(postId);
-        return comments;
+        List<CommentView> comments = commentRepository.findCommentsWithUserByPostId(postId);
+        return comments.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    private CommentDTO mapToDTO(CommentView comment) {
+        return new CommentDTO(
+                comment.getId(),
+                comment.getText(),
+                comment.getUser().getId(),
+                comment.getUser().getName(),
+                comment.getPost().getId(),
+                comment.getCreatedAt());
     }
 
     private CommentDTO mapToDTO(Comment comment) {
