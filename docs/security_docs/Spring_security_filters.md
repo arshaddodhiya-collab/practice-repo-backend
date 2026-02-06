@@ -2,6 +2,60 @@
 
 ---
 
+## 🎨 Visual Flow Diagram
+
+```mermaid
+flowchart TD
+    %% Key Components
+    req((Request))
+    resp((Response/Error))
+    
+    subgraph SEC_CHAIN ["🛡️ Spring Security Filter Chain"]
+        direction TB
+        
+        SCPF["1️⃣ SecurityContextPersistenceFilter<br/>(Load Context)"]
+        ETF["2️⃣ ExceptionTranslationFilter<br/>(Handle Security Errors)"]
+        
+        subgraph AUTH_PHASE ["Authentication Phase"]
+            direction TB
+            AuthF["3️⃣ Auth Filters<br/>(JWT, Login, Basic)"]
+        end
+        
+        subgraph AUTHZ_PHASE ["Authorization Phase"]
+            FSI["4️⃣ FilterSecurityInterceptor<br/>(Check Permissions)"]
+        end
+        
+        SCPF --> ETF
+        ETF --> AuthF
+        AuthF --> FSI
+    end
+
+    Target[[Controller / Service]]
+
+    %% Main Flow
+    req ==> SCPF
+    
+    %% Auth Logic
+    AuthF -- "❌ Auth Failed" --> ExAuth[Throw AuthException]
+    AuthF -- "✅ Auth Success" --> FSI
+    
+    %% AuthZ Logic
+    FSI -- "❌ Denied" --> ExAccess[Throw AccessDeniedException]
+    FSI -- "✅ Allowed" --> Target
+    
+    %% Exception Handling
+    ExAuth -.-> ETF
+    ExAccess -.-> ETF
+    ETF -.-> |"401 / 403"| resp
+    
+    %% Success Return
+    Target ==> resp
+    
+    %% Cleanup
+    resp --> ClearContext["1️⃣ SCPF: Clear Context"]
+```
+
+
 ## 🔁 First: Big Mental Model (Very Important)
 
 For **every HTTP request**:
@@ -457,59 +511,3 @@ Those exceptions:
 > **Authentication filters create Authentication
 > Authorization filter (FilterSecurityInterceptor) checks it
 > ExceptionTranslationFilter converts failures into HTTP codes**
-
-
----
-
-## 🎨 Visual Flow Diagram
-
-```mermaid
-flowchart TD
-    %% Key Components
-    req((Request))
-    resp((Response/Error))
-    
-    subgraph SEC_CHAIN ["🛡️ Spring Security Filter Chain"]
-        direction TB
-        
-        SCPF["1️⃣ SecurityContextPersistenceFilter<br/>(Load Context)"]
-        ETF["2️⃣ ExceptionTranslationFilter<br/>(Handle Security Errors)"]
-        
-        subgraph AUTH_PHASE ["Authentication Phase"]
-            direction TB
-            AuthF["3️⃣ Auth Filters<br/>(JWT, Login, Basic)"]
-        end
-        
-        subgraph AUTHZ_PHASE ["Authorization Phase"]
-            FSI["4️⃣ FilterSecurityInterceptor<br/>(Check Permissions)"]
-        end
-        
-        SCPF --> ETF
-        ETF --> AuthF
-        AuthF --> FSI
-    end
-
-    Target[[Controller / Service]]
-
-    %% Main Flow
-    req ==> SCPF
-    
-    %% Auth Logic
-    AuthF -- "❌ Auth Failed" --> ExAuth[Throw AuthException]
-    AuthF -- "✅ Auth Success" --> FSI
-    
-    %% AuthZ Logic
-    FSI -- "❌ Denied" --> ExAccess[Throw AccessDeniedException]
-    FSI -- "✅ Allowed" --> Target
-    
-    %% Exception Handling
-    ExAuth -.-> ETF
-    ExAccess -.-> ETF
-    ETF -.-> |"401 / 403"| resp
-    
-    %% Success Return
-    Target ==> resp
-    
-    %% Cleanup
-    resp --> ClearContext["1️⃣ SCPF: Clear Context"]
-```
