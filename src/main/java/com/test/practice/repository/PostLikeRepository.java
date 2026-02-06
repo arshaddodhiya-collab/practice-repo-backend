@@ -1,5 +1,6 @@
 package com.test.practice.repository;
 
+import com.test.practice.dto.PostLikeDTO;
 import com.test.practice.dto.UserActivityReportDTO;
 import com.test.practice.entity.PostLike;
 import org.springframework.data.jpa.repository.JpaRepository;

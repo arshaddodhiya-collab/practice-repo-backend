@@ -44,8 +44,8 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByPostId(Long postId) {
         // Using the HQL method we created
-        List<Comment> comments = commentRepository.findCommentsWithUserByPostId(postId);
-        return comments.stream().map(this::mapToDTO).collect(Collectors.toList());
+        List<CommentDTO> comments = commentRepository.findCommentsWithUserByPostId(postId);
+        return comments;
     }
 
     private CommentDTO mapToDTO(Comment comment) {

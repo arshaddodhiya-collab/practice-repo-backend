@@ -72,8 +72,7 @@ public class PostService {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
-        return postRepository.findByUserId(userId, pageable)
-                .map(PostService::mapToDTO);
+        return postRepository.findByUserId(userId, pageable);
     }
 
     private static PostDTO mapToDTO(Post post) {

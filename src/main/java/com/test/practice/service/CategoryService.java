@@ -40,10 +40,8 @@ public class CategoryService {
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Category not found with id " + categoryId);
         }
-        List<Post> posts = postRepository.findByCategoryId(categoryId);
-        return posts.stream()
-                .map(this::mapToPostDTO)
-                .collect(Collectors.toList());
+        List<PostDTO> posts = postRepository.findByCategoryId(categoryId);
+        return posts;
     }
 
     private CategoryDTO mapToDTO(Category category) {
