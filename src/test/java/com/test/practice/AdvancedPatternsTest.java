@@ -32,7 +32,7 @@ public class AdvancedPatternsTest {
     @Transactional
     public void testSpecifications() {
         // Setup Data
-        User user = new User("John Doe", "john@example.com");
+        User user = User.builder().name("John Doe").email("john@example.com").build();
         userRepository.save(user);
 
         Category javaCat = new Category();
@@ -43,15 +43,15 @@ public class AdvancedPatternsTest {
         pythonCat.setName("Python");
         categoryRepository.save(pythonCat);
 
-        Post p1 = new Post("Learn Java Loops", "Content", user);
+        Post p1 = Post.builder().title("Learn Java Loops").content("Content").user(user).build();
         p1.setCategory(javaCat);
         postRepository.save(p1);
 
-        Post p2 = new Post("Advanced Java Streams", "Content", user);
+        Post p2 = Post.builder().title("Advanced Java Streams").content("Content").user(user).build();
         p2.setCategory(javaCat);
         postRepository.save(p2);
 
-        Post p3 = new Post("Python Basics", "Content", user);
+        Post p3 = Post.builder().title("Python Basics").content("Content").user(user).build();
         p3.setCategory(pythonCat);
         postRepository.save(p3);
 
@@ -73,7 +73,7 @@ public class AdvancedPatternsTest {
     @Test
     @Transactional
     public void testProjections() {
-        User user = new User("Alice Projection", "alice@proj.com");
+        User user = User.builder().name("Alice Projection").email("alice@proj.com").build();
         userRepository.save(user);
 
         List<UserSummary> summaries = userRepository.findAllProjectedBy();
@@ -94,10 +94,10 @@ public class AdvancedPatternsTest {
     @Test
     @Transactional
     public void testEntityGraph() {
-        User user = new User("Graph User", "graph@example.com");
+        User user = User.builder().name("Graph User").email("graph@example.com").build();
         userRepository.save(user);
 
-        Post post = new Post("Graph Post", "Content", user);
+        Post post = Post.builder().title("Graph Post").content("Content").user(user).build();
         postRepository.save(post);
 
         // Clear persistence context to ensure we are actually fetching from DB
@@ -117,10 +117,10 @@ public class AdvancedPatternsTest {
     @Test
     @Transactional
     public void testFetchJoin() {
-        User user = new User("Join User", "join@example.com");
+        User user = User.builder().name("Join User").email("join@example.com").build();
         userRepository.save(user);
 
-        Post post = new Post("Join Post", "Content", user);
+        Post post = Post.builder().title("Join Post").content("Content").user(user).build();
         postRepository.save(post);
 
         List<Post> posts = postRepository.findAllWithUserFetchJoin();

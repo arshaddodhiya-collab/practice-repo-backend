@@ -70,15 +70,21 @@ public class UserService {
         List<PostDTO> postDTOs = user.getPosts() != null
                 ? user.getPosts().stream().map(UserService::mapToPostDTO).collect(Collectors.toList())
                 : null;
-        return new UserDTO(user.getId(), user.getName(), user.getEmail(), postDTOs);
+        return UserDTO.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .posts(postDTOs)
+                .build();
     }
 
     private static PostDTO mapToPostDTO(Post post) {
-        return new PostDTO(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory() != null ? post.getCategory().getId() : null,
-                post.getCategory() != null ? post.getCategory().getName() : null);
+        return PostDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
+                .categoryName(post.getCategory() != null ? post.getCategory().getName() : null)
+                .build();
     }
 }

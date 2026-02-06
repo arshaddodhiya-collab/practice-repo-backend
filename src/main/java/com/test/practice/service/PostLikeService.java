@@ -39,7 +39,10 @@ public class PostLikeService {
         Post post = postRepository.findById(likeDTO.getPostId())
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        PostLike like = new PostLike(user, post);
+        PostLike like = PostLike.builder()
+                .user(user)
+                .post(post)
+                .build();
         postLikeRepository.save(like);
     }
 

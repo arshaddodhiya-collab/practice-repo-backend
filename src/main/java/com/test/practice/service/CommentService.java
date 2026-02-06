@@ -36,7 +36,11 @@ public class CommentService {
         Post post = postRepository.findById(commentDTO.getPostId())
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        Comment comment = new Comment(commentDTO.getText(), user, post);
+        Comment comment = Comment.builder()
+                .text(commentDTO.getText())
+                .user(user)
+                .post(post)
+                .build();
         Comment savedComment = commentRepository.save(comment);
 
         return mapToDTO(savedComment);
@@ -50,22 +54,24 @@ public class CommentService {
     }
 
     private CommentDTO mapToDTO(CommentView comment) {
-        return new CommentDTO(
-                comment.getId(),
-                comment.getText(),
-                comment.getUser().getId(),
-                comment.getUser().getName(),
-                comment.getPost().getId(),
-                comment.getCreatedAt());
+        return CommentDTO.builder()
+                .id(comment.getId())
+                .text(comment.getText())
+                .userId(comment.getUser().getId())
+                .userName(comment.getUser().getName())
+                .postId(comment.getPost().getId())
+                .createdAt(comment.getCreatedAt())
+                .build();
     }
 
     private CommentDTO mapToDTO(Comment comment) {
-        return new CommentDTO(
-                comment.getId(),
-                comment.getText(),
-                comment.getUser().getId(),
-                comment.getUser().getName(),
-                comment.getPost().getId(),
-                comment.getCreatedAt());
+        return CommentDTO.builder()
+                .id(comment.getId())
+                .text(comment.getText())
+                .userId(comment.getUser().getId())
+                .userName(comment.getUser().getName())
+                .postId(comment.getPost().getId())
+                .createdAt(comment.getCreatedAt())
+                .build();
     }
 }

@@ -81,23 +81,25 @@ public class PostService {
         if (post == null) {
             return null;
         }
-        return new PostDTO(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory() != null ? post.getCategory().getId() : null,
-                post.getCategory() != null ? post.getCategory().getName() : null);
+        return PostDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
+                .categoryName(post.getCategory() != null ? post.getCategory().getName() : null)
+                .build();
     }
 
     private static PostDTO mapToDTO(Post post) {
         if (post == null) {
             return null;
         }
-        return new PostDTO(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory() != null ? post.getCategory().getId() : null,
-                post.getCategory() != null ? post.getCategory().getName() : null);
+        return PostDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
+                .categoryName(post.getCategory() != null ? post.getCategory().getName() : null)
+                .build();
     }
 }

@@ -26,7 +26,10 @@ public class CategoryService {
 
     @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-        Category category = new Category(categoryDTO.getName(), categoryDTO.getDescription());
+        Category category = Category.builder()
+                .name(categoryDTO.getName())
+                .description(categoryDTO.getDescription())
+                .build();
         Category savedCategory = categoryRepository.save(category);
         return mapToDTO(savedCategory);
     }
@@ -48,15 +51,20 @@ public class CategoryService {
     }
 
     private PostDTO mapToPostDTO(PostView post) {
-        return new PostDTO(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getCategory() != null ? post.getCategory().getId() : null,
-                post.getCategory() != null ? post.getCategory().getName() : null);
+        return PostDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .categoryId(post.getCategory() != null ? post.getCategory().getId() : null)
+                .categoryName(post.getCategory() != null ? post.getCategory().getName() : null)
+                .build();
     }
 
     private CategoryDTO mapToDTO(Category category) {
-        return new CategoryDTO(category.getId(), category.getName(), category.getDescription());
+        return CategoryDTO.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .description(category.getDescription())
+                .build();
     }
 }

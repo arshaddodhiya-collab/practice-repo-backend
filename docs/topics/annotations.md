@@ -541,14 +541,3 @@ Annotations:
 * Tell Spring **what to create**
 * Tell Spring **how to wire**
 * Tell Spring **when to execute**
-
----
-
-If you want, next we can:
-
-* 🔍 Map **annotations to internal Spring flow**
-* 🔐 Deep-dive **security annotations**
-* 🧪 Annotation behavior **at runtime**
-* 📦 Real-world **project-wise annotation usage**
-
-Just tell me how deep you want to go 😄
