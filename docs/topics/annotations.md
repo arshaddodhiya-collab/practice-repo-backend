@@ -1,327 +1,854 @@
-# 📚 Complete Spring Boot & Java Annotations Guide
+## 🤔 What problem does Lombok solve?
 
-This guide covers the most essential annotations used in Spring Boot development, from Lombok to JPA to Core Spring.
+In **normal Java**, you write **a LOT of boring code**.
+
+Example: a simple `User` class 👇
+
+```java
+public class User {
+
+    private Long id;
+    private String name;
+    private String email;
+
+    public User() {}
+
+    public User(Long id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+}
+```
+
+👉 **80% of this code is noise**
+👉 Hard to read
+👉 Easy to forget a getter/setter
+👉 Makes classes unnecessarily long
 
 ---
 
-## 🛠️ Lombok Annotations (Boilerplate Killer)
+## ✨ What is Lombok?
 
-**Lombok** is a library that generates boilerplate code (getters, setters, constructors) at compile time.
+**Lombok is a Java library that writes this boring code for you at compile time.**
 
-```mermaid
-graph LR
-    A[Java Source Code] -->|Wrapper| B[Lombok Annotation Processor]
-    B -->|Injects Methods| C[Bytecode .class]
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#bfb,stroke:#333,stroke-width:2px
+You write **less code**, but Java still behaves **exactly the same**.
+
+Think of Lombok as:
+
+> 🧠 “Hey compiler, please generate getters, setters, constructors, etc. for me.”
+
+---
+
+## 🔧 How Lombok works (simple idea)
+
+* You add **annotations** (like `@Getter`, `@Setter`)
+* Lombok **generates code during compilation**
+* **No extra code at runtime**
+* Your `.class` file has everything
+
+⚠️ Lombok does **NOT** exist in production JVM
+It’s a **developer convenience tool**
+
+---
+
+## 📦 Adding Lombok in Spring Boot
+
+If you used **Spring Initializr**, just check ✅ Lombok.
+
+### Maven dependency
+
+```xml
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <optional>true</optional>
+</dependency>
 ```
+
+⚠️ Also install **Lombok plugin** in your IDE
+(IntelliJ / Eclipse / VS Code)
+
+---
+
+## 🧩 Most Used Lombok Annotations (You’ll use these daily)
+
+---
 
 ### 1️⃣ `@Getter` and `@Setter`
-Generates getters and setters for fields.
+
+Instead of writing getters/setters manually:
+
 ```java
-@Getter @Setter
+@Getter
+@Setter
 public class User {
+    private Long id;
     private String name;
 }
-// Generates: getName(), setName(String name)
 ```
 
-### 2️⃣ `@NoArgsConstructor` & `@AllArgsConstructor`
-Generates constructors.
-*   `@NoArgsConstructor`: Empty constructor (Essential for JPA/Hibernate).
-*   `@AllArgsConstructor`: Constructor with all fields.
+➡️ Lombok generates:
 
-### 3️⃣ `@ToString`
-Generates a `toString()` method including all fields.
-*   **Tip**: Use `@ToString.Exclude` on fields to prevent infinite recursion (e.g., in bidirectional relationships).
+* `getId()`, `setId()`
+* `getName()`, `setName()`
 
-### 4️⃣ ⭐ `@Data` (The Big One)
-Combines `@Getter`, `@Setter`, `@ToString`, `@EqualsAndHashCode`, and `@RequiredArgsConstructor`.
-*   **⚠️ WARNING**: Avoid using `@Data` on **JPA Entities**. The `hashCode()` and `equals()` implementation can cause severe issues with Hibernate. Use `@Getter` + `@Setter` + `@ToString` instead.
+You can also apply it **per field**:
 
-### 5️⃣ `@Builder`
-Implements the Builder pattern for easy object creation.
 ```java
-User user = User.builder().name("Arashad").email("a@test.com").build();
-// versus
-User user = new User("Arashad", "a@test.com", ...); // Constructor hell
-```
-
-### 6️⃣ `@Slf4j`
-Auto-generates a logger field.
-```java
-@Slf4j
-public class MyService {
-    public void doSomething() {
-        log.info("Doing something..."); // 'log' is automatically available
-    }
-}
-```
-
----
-
-## 🍃 Core Spring Annotations
-
-### 1️⃣ `@Component`
-Generic stereotype for any Spring-managed component. Spring detects these classes during component scanning and creates beans for them.
-
-```mermaid
-graph TD
-    subgraph Spring Container
-    A((@Component))
-    B((@Service))
-    C((@Repository))
-    D((@Controller))
-    end
-    B -->|extends| A
-    C -->|extends| A
-    D -->|extends| A
-    style A fill:#f96,stroke:#333
-```
-
-### 2️⃣ `@Service`
-A specialization of `@Component`. Use this for **Service Layer** classes (business logic).
-*   Functionally same as `@Component` but adds semantic meaning.
-
-### 3️⃣ `@Repository`
-A specialization of `@Component` for **Data Access Layer** (DAOs).
-*   **Feature**: Automatically translates database exceptions into Spring's `DataAccessException` hierarchy.
-
-### 4️⃣ `@Controller`
-A specialization of `@Component` for **Spring MVC Controllers**. Handles web requests.
-
-### 5️⃣ `@Configuration`
-Indicates a class declares one or more `@Bean` methods.
-```java
-@Configuration
-public class AppConfig {
-    @Bean
-    public MyBean myBean() {
-        return new MyBean();
-    }
-}
-```
-
-### 6️⃣ `@Bean`
-Marks a method within a `@Configuration` class to define a bean. The return value is registered in the Spring ApplicationContext.
-
----
-
-## 💉 Dependency Injection
-
-### 1️⃣ `@Autowired`
-Tells Spring to inject a dependency here.
-
-```mermaid
-classDiagram
-    class UserController {
-        +UserService userService
-    }
-    class UserService {
-        +UserRepository userRepository
-    }
-    class UserRepository {
-    }
-    
-    UserController ..> UserService : @Autowired
-    UserService ..> UserRepository : @Autowired
-    
-    note for UserController "Controller Layer"
-    note for UserService "Service Layer" 
-```
-*   **Constructors** (Recommended): No annotation needed if there's only one constructor.
-*   **Fields** (Avoid): Hard to test.
-*   **Setters**: Optional dependencies.
-
-### 2️⃣ `@Qualifier`
-Used with `@Autowired` to specify *which* bean to inject when multiple beans of the same type exist.
-```java
-@Autowired
-@Qualifier("emailService") // vs "smsService"
-private MessageService messageService;
-```
-
-### 3️⃣ `@Value`
-Injects values from properties files (`application.properties`).
-```java
-@Value("${app.database.url}")
-private String dbUrl;
-```
-
-### 4️⃣ `@Primary`
-When multiple beans of the same type exist, the one marked `@Primary` will be chosen by default unless a `@Qualifier` is used.
-
----
-
-## 🚀 Spring Boot Specifics
-
-### 1️⃣ `@SpringBootApplication`
-The starting point of a Spring Boot application. It triggers auto-configuration and component scanning.
-It combines:
-*   `@Configuration`
-*   `@EnableAutoConfiguration`
-*   `@ComponentScan`
-
----
-
-## 🌐 Spring MVC & REST
-
-### 1️⃣ `@RestController`
-Combines `@Controller` and `@ResponseBody`.
-*   Tells Spring that data returned by each method should be written straight into the response body (JSON/XML) instead of rendering a template.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Controller as @RestController
-    participant Service as @Service
-    participant Database
-
-    Client->>Controller: HTTP Request (@GetMapping, @PostMapping)
-    Controller->>Controller: Map Body (@RequestBody) / Params (@RequestParam)
-    Controller->>Service: Call Business Logic
-    Service->>Database: Data Access (@Repository)
-    Database-->>Service: Entity Data
-    Service-->>Controller: DTO
-    Controller-->>Client: JSON Response (@ResponseBody)
-```
-
-### 2️⃣ `@RequestMapping`
-Maps HTTP requests to handler methods. Can be used at class or method level.
-```java
-@RequestMapping("/api/v1/users")
-public class UserController { ... }
-```
-
-### 3️⃣ `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`
-Shortcuts for `@RequestMapping(method = RequestMethod.GET)`, etc.
-
-### 4️⃣ `@RequestBody`
-Maps the HTTP request body (JSON) to a Java object.
-```java
-public void createUser(@RequestBody UserDto userDto) { ... }
-```
-
-### 5️⃣ `@PathVariable`
-Extracts values from the URI path.
-```java
-@GetMapping("/{id}")
-public User getUser(@PathVariable("id") Long id) { ... }
-```
-
-### 6️⃣ `@RequestParam`
-Extracts query parameters from the URL (e.g., `?search=foo`).
-```java
-public List<User> search(@RequestParam("search") String query) { ... }
-```
-
-### 7️⃣ `@CrossOrigin`
-Enables Cross-Origin Resource Sharing (CORS) for the controller or specific method.
-```java
-@CrossOrigin(origins = "http://localhost:4200") // Allow Angular app
-```
-
-### 8️⃣ `@ResponseStatus`
-Specifies the HTTP status code to return.
-```java
-@ResponseStatus(HttpStatus.CREATED) // 201
-public void create() { ... }
-```
-
----
-
-## 🗄️ Data Access (JPA / Hibernate)
-
-### 1️⃣ `@Entity`
-Marks a class as a JPA entity (mapped to a database table).
-
-### 2️⃣ `@Table`
-Specifies the details of the table usage (name, schema, constraints).
-```java
-@Table(name = "t_users")
-```
-
-### 3️⃣ `@Id`
-Marks the primary key field.
-
-### 4️⃣ `@GeneratedValue`
-Configures the way of increment of the specified column(field).
-```java
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-```
-
-### 5️⃣ `@Column`
-Specifies the details of the column to which a field or property will be mapped.
-```java
-@Column(name = "email_address", nullable = false, unique = true)
-private String email;
-```
-
-### 6️⃣ `@Transient`
-Specifies that a field is NOT to be persisted in the database.
-
-### 7️⃣ `@OneToMany`, `@ManyToOne`, `@OneToOne`, `@ManyToMany`
-Defines relationships between entities.
-```java
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "department_id")
-private Department department;
-```
-
----
-
-## 🔄 Transaction Management
-
-### 1️⃣ `@Transactional`
-Defines the scope of a single database transaction.
-*   **Usage**: Put this on Service methods.
-*   **Effect**: If the method throws a RuntimeException, the changes are **rolled back**. If it finishes successfully, changes are **committed**.
-
-```mermaid
-stateDiagram-v2
-    [*] --> StartTransaction
-    StartTransaction --> RunBusinessLogic
-    RunBusinessLogic --> Exception : Error?
-    RunBusinessLogic --> Success : No Error
-    Exception --> Rollback : @Transactional
-    Success --> Commit : @Transactional
-    Rollback --> [*]
-    Commit --> [*]
-```
-
----
-
-## 🧪 Testing
-
-### 1️⃣ `@SpringBootTest`
-Loads the complete Spring aplication context for integration tests.
-
-### 2️⃣ `@MockBean`
-Creates a Mockito mock for a bean and injects it into the ApplicationContext, replacing any existing bean of the same type.
-
-### 3️⃣ `@Test`
-JUnit annotation to mark a method as a test case.
-
----
-
-## ✅ Validation (`javax.validation` / `jakarta.validation`)
-
-### 1️⃣ `@Valid`
-Triggers validation on nested objects or method parameters (often used with `@RequestBody`).
-
-### 2️⃣ `@NotNull`
-The element must not be null.
-
-### 3️⃣ `@NotBlank`
-The element must not be null and must contain at least one non-whitespace character.
-
-### 4️⃣ `@Size`
-Constrains the size of the element (Array, Collection, Map, String).
-```java
-@Size(min = 2, max = 50)
+@Getter
 private String name;
 ```
 
-### 5️⃣ `@Email`
-Checks if the string is a valid email address.
+---
+
+### 2️⃣ `@NoArgsConstructor` & `@AllArgsConstructor`
+
+Very common in **Spring + JPA**
+
+```java
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    private Long id;
+    private String name;
+}
+```
+
+Equivalent to:
+
+```java
+public User() {}
+public User(Long id, String name) { ... }
+```
+
+---
+
+### 3️⃣ `@ToString`
+
+Auto-generates `toString()` method
+
+```java
+@ToString
+public class User {
+    private Long id;
+    private String name;
+}
+```
+
+Now logging becomes easy:
+
+```java
+System.out.println(user);
+```
+
+---
+
+### 4️⃣ ⭐ `@Data` (MOST USED)
+
+This is a **combo annotation** 🔥
+
+```java
+@Data
+public class User {
+    private Long id;
+    private String name;
+}
+```
+
+It generates:
+✔ getters
+✔ setters
+✔ `toString()`
+✔ `equals()`
+✔ `hashCode()`
+✔ required constructor
+
+👉 **90% of DTOs use `@Data`**
+
+---
+
+### 5️⃣ `@Builder` (Very powerful)
+
+Used for **clean object creation**
+
+```java
+@Builder
+public class User {
+    private Long id;
+    private String name;
+    private String email;
+}
+```
+
+Usage:
+
+```java
+User user = User.builder()
+        .id(1L)
+        .name("Arashad")
+        .email("a@test.com")
+        .build();
+```
+
+✔ readable
+✔ avoids constructor overload mess
+✔ common in APIs
+
+---
+
+## 🧪 Lombok in a Spring Boot Example (Realistic)
+
+### Entity / DTO example
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Patient {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+    private int age;
+}
+```
+
+👉 Without Lombok this file would be **2x longer**
+
+---
+
+## ⚠️ Lombok with JPA – Important Tips
+
+❌ **Avoid `@Data` on JPA entities blindly**
+
+Why?
+
+* `equals()` & `hashCode()` can break Hibernate
+* `toString()` may cause lazy-loading issues
+
+### ✅ Better JPA pattern
+
+```java
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class Patient {
+    ...
+}
+```
+
+Use `@Data` freely for:
+✔ DTOs
+✔ Request/Response models
+✔ Utility classes
+
+---
+
+## 🧠 Is Lombok safe?
+
+✔ Used by millions
+✔ Used in Spring ecosystem
+✔ No runtime overhead
+✔ Compile-time only
+
+❌ Downside:
+
+* Hidden code (new devs may get confused)
+* IDE plugin required
+
+---
+
+## 🧾 Quick Cheat Sheet
+
+| Annotation            | Purpose           |
+| --------------------- | ----------------- |
+| `@Getter`             | Generates getters |
+| `@Setter`             | Generates setters |
+| `@NoArgsConstructor`  | Empty constructor |
+| `@AllArgsConstructor` | Full constructor  |
+| `@ToString`Love this question. This is exactly the *right* time to master annotations — once you get these, Spring Boot starts feeling **logical instead of magical** 🧠✨
+
+I’ll give you a **future-proof, readable, reference-style guide** that you can come back to anytime.
+
+---
+
+## 🧠 Big Picture First (Don’t Skip This)
+
+**Annotations in Spring Boot answer four questions:**
+
+1. **WHAT is this class / method / field?**
+2. **WHEN should Spring use it?**
+3. **WHERE should Spring manage it?**
+4. **HOW should Spring wire things together?**
+
+Spring Boot scans your code, reads annotations, and builds the application **at runtime**.
+
+---
+
+![Image](https://miro.medium.com/v2/resize%3Afit%3A1200/1%2AlRYT83RhbWw-4_Uu9cTdXg.png)
+
+![Image](https://miro.medium.com/0%2AEu5gNw91iJNpSqMr)
+
+![Image](https://www.springboottutorial.com/images/spring-features.png)
+
+---
+
+# 🧩 ANNOTATION CATEGORIES (Mental Map)
+
+You’ll understand better if you group them:
+
+| Category             | Purpose                      |
+| -------------------- | ---------------------------- |
+| Core Boot            | Start & configure app        |
+| Stereotype           | Tell Spring “this is a bean” |
+| Dependency Injection | Wire objects                 |
+| Web / REST           | Handle HTTP                  |
+| JPA / Database       | Persistence                  |
+| Configuration        | App settings                 |
+| Validation           | Input checks                 |
+| Security             | Auth & access                |
+| Utility              | Misc helpers                 |
+
+---
+
+# 1️⃣ CORE SPRING BOOT ANNOTATIONS
+
+---
+
+## 🔹 `@SpringBootApplication`
+
+### WHAT
+
+Main entry point of your app.
+
+### WHEN
+
+Used **once**, on the main class.
+
+### WHERE
+
+Top-level package.
+
+### HOW
+
+It combines **three annotations**:
+
+* `@Configuration`
+* `@EnableAutoConfiguration`
+* `@ComponentScan`
+
+```java
+@SpringBootApplication
+public class MyApp {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApp.class, args);
+    }
+}
+```
+
+🧠 **Rule**: Put this class at the **root package**, or Spring won’t scan properly.
+
+---
+
+## 🔹 `@EnableAutoConfiguration`
+
+### WHAT
+
+Spring decides configs automatically.
+
+### WHEN
+
+At startup.
+
+### HOW
+
+Checks:
+
+* Dependencies
+* Classpath
+* application.properties
+
+📌 Example:
+
+* If MySQL exists → auto config DataSource
+* If Spring MVC exists → auto config DispatcherServlet
+
+---
+
+# 2️⃣ STEREOTYPE ANNOTATIONS (BEANS)
+
+These tell Spring:
+👉 “Create and manage this object”
+
+---
+
+## 🔹 `@Component`
+
+### WHAT
+
+Generic Spring-managed bean.
+
+### WHEN
+
+During component scanning.
+
+### WHERE
+
+Any class.
+
+```java
+@Component
+public class EmailService { }
+```
+
+---
+
+## 🔹 `@Service`
+
+### WHAT
+
+Business logic layer.
+
+### WHY
+
+Same as `@Component`, but **semantic clarity**.
+
+```java
+@Service
+public class UserService { }
+```
+
+🧠 Best for:
+
+* Business rules
+* Transactions
+* Processing logic
+
+---
+
+## 🔹 `@Repository`
+
+### WHAT
+
+Data access layer.
+
+### SPECIAL POWER
+
+* Translates DB exceptions into Spring exceptions
+
+```java
+@Repository
+public class UserRepository { }
+```
+
+🧠 Used automatically by Spring Data JPA interfaces.
+
+---
+
+## 🔹 `@Controller` vs `@RestController`
+
+### `@Controller`
+
+Returns **views (HTML)**
+
+```java
+@Controller
+public class PageController {
+    @GetMapping("/home")
+    public String home() {
+        return "index";
+    }
+}
+```
+
+---
+
+### `@RestController`
+
+### WHAT
+
+REST APIs → returns **JSON**
+
+### HOW
+
+`@Controller + @ResponseBody`
+
+```java
+@RestController
+public class UserController {
+
+    @GetMapping("/users")
+    public List<User> users() {
+        return service.getAll();
+    }
+}
+```
+
+🧠 **99% of backend devs use this**
+
+---
+
+# 3️⃣ DEPENDENCY INJECTION ANNOTATIONS
+
+---
+
+## 🔹 `@Autowired`
+
+### WHAT
+
+Injects dependency automatically.
+
+### WHERE
+
+* Constructor (BEST)
+* Field (NOT recommended)
+* Setter
+
+```java
+@Service
+public class OrderService {
+
+    private final UserService userService;
+
+    @Autowired
+    public OrderService(UserService userService) {
+        this.userService = userService;
+    }
+}
+```
+
+🧠 **Constructor injection = best practice**
+
+---
+
+## 🔹 `@Qualifier`
+
+### WHAT
+
+Choose which bean to inject.
+
+```java
+@Autowired
+@Qualifier("paypalPayment")
+private PaymentService paymentService;
+```
+
+---
+
+## 🔹 `@Primary`
+
+### WHAT
+
+Default bean if multiple exist.
+
+```java
+@Primary
+@Component
+public class StripePayment implements PaymentService {}
+```
+
+---
+
+# 4️⃣ WEB / REST ANNOTATIONS
+
+---
+
+## 🔹 `@RequestMapping`
+
+Base mapping.
+
+```java
+@RequestMapping("/api/users")
+```
+
+---
+
+## 🔹 HTTP Method Mappings
+
+| Annotation       | HTTP   |
+| ---------------- | ------ |
+| `@GetMapping`    | GET    |
+| `@PostMapping`   | POST   |
+| `@PutMapping`    | PUT    |
+| `@DeleteMapping` | DELETE |
+| `@PatchMapping`  | PATCH  |
+
+```java
+@GetMapping("/{id}")
+public User get(@PathVariable Long id) { }
+```
+
+---
+
+## 🔹 `@PathVariable`
+
+```java
+@GetMapping("/users/{id}")
+public User get(@PathVariable Long id) { }
+```
+
+---
+
+## 🔹 `@RequestParam`
+
+```java
+@GetMapping("/search")
+public List<User> search(@RequestParam String name) { }
+```
+
+---
+
+## 🔹 `@RequestBody`
+
+```java
+@PostMapping
+public User save(@RequestBody User user) { }
+```
+
+---
+
+# 5️⃣ JPA / DATABASE ANNOTATIONS
+
+---
+
+## 🔹 `@Entity`
+
+### WHAT
+
+Maps class → DB table.
+
+```java
+@Entity
+public class User { }
+```
+
+---
+
+## 🔹 `@Id`
+
+Primary key.
+
+```java
+@Id
+@GeneratedValue
+private Long id;
+```
+
+---
+
+## 🔹 `@Column`
+
+```java
+@Column(nullable = false, unique = true)
+private String email;
+```
+
+---
+
+## 🔹 Relationships
+
+| Annotation    | Relation |
+| ------------- | -------- |
+| `@OneToOne`   | 1–1      |
+| `@OneToMany`  | 1–N      |
+| `@ManyToOne`  | N–1      |
+| `@ManyToMany` | N–N      |
+
+```java
+@ManyToOne
+@JoinColumn(name = "user_id")
+private User user;
+```
+
+---
+
+# 6️⃣ CONFIGURATION ANNOTATIONS
+
+---
+
+## 🔹 `@Configuration`
+
+Defines config class.
+
+```java
+@Configuration
+public class AppConfig { }
+```
+
+---
+
+## 🔹 `@Bean`
+
+Manually create bean.
+
+```java
+@Bean
+public ObjectMapper mapper() {
+    return new ObjectMapper();
+}
+```
+
+---
+
+## 🔹 `@Value`
+
+Inject property.
+
+```java
+@Value("${server.port}")
+private int port;
+```
+
+---
+
+## 🔹 `@ConfigurationProperties`
+
+Bind whole config object.
+
+```java
+@ConfigurationProperties(prefix = "app")
+public class AppConfigProps {
+    private String name;
+}
+```
+
+---
+
+# 7️⃣ VALIDATION ANNOTATIONS
+
+---
+
+```java
+@NotNull
+@NotBlank
+@Email
+@Size(min = 8)
+```
+
+```java
+public class UserDTO {
+    @Email
+    private String email;
+}
+```
+
+Activate using:
+
+```java
+@PostMapping
+public void save(@Valid @RequestBody UserDTO dto) { }
+```
+
+---
+
+# 8️⃣ SECURITY ANNOTATIONS (IMPORTANT)
+
+---
+
+## 🔹 `@EnableWebSecurity`
+
+Enable Spring Security.
+
+---
+
+## 🔹 `@PreAuthorize`
+
+```java
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/admin")
+public String admin() { }
+```
+
+---
+
+## 🔹 `@Secured`
+
+```java
+@Secured("ROLE_ADMIN")
+```
+
+---
+
+# 9️⃣ UTILITY / SPECIAL ANNOTATIONS
+
+---
+
+## 🔹 `@Transactional`
+
+### WHAT
+
+Wraps method in DB transaction.
+
+```java
+@Transactional
+public void transfer() { }
+```
+
+🧠 Rollback on runtime exceptions.
+
+---
+
+## 🔹 `@Async`
+
+```java
+@Async
+public void sendEmail() { }
+```
+
+---
+
+## 🔹 `@Scheduled`
+
+```java
+@Scheduled(fixedRate = 5000)
+public void job() { }
+```
+
+---
+
+# 🧠 FINAL MENTAL MODEL (REMEMBER THIS)
+
+> **Spring Boot = Annotation + Convention + Runtime Magic**
+
+Annotations:
+
+* Tell Spring **what to create**
+* Tell Spring **how to wire**
+* Tell Spring **when to execute**
+
+---
+
+If you want, next we can:
+
+* 🔍 Map **annotations to internal Spring flow**
+* 🔐 Deep-dive **security annotations**
+* 🧪 Annotation behavior **at runtime**
+* 📦 Real-world **project-wise annotation usage**
+
+Just tell me how deep you want to go 😄
+           | toString()        |
+| `@EqualsAndHashCode`  | equals + hashCode |
+| `@Data`               | All of the above  |
+| `@Builder`            | Builder pattern   |
+
+---
+
+## 🎯 One-line Summary
+
+> **Lombok removes boilerplate Java code so you can focus on business logic instead of getters and setters.**
+
