@@ -1,4 +1,4 @@
-package com.test.practice.repository;
+package com.test.practice.dto;
 
 public interface UserSummary {
     Long getId();

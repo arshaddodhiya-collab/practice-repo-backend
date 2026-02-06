@@ -1,5 +1,6 @@
 package com.test.practice.repository;
 
+import com.test.practice.dto.UserSummary;
 import com.test.practice.entity.User;
 
 import java.util.List;
